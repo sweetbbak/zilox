@@ -1,8 +1,8 @@
 const std = @import("std");
 const Vm = @import("vm.zig").Vm;
 pub const ValueType = enum {
-    bool,
     nil,
+    bool,
     number,
     string,
 };
@@ -42,7 +42,7 @@ pub const Value = union(ValueType) {
 
 pub const Obj = struct {
     const Self = @This();
-    const FnType = fn (*Obj, *Vm) void;
+    const FnType = *const fn (*Obj, *Vm) void;
     deinitFn: FnType,
     next: ?*Obj = null,
 
@@ -108,7 +108,7 @@ pub const ObjString = struct {
     }
 
     pub fn deinit(obj: *Obj, vm: *Vm) void {
-        const self = @fieldParentPtr(Self, "obj", obj);
+        const self: *Self = @fieldParentPtr("obj", obj);
         vm.allocator.free(self.chars);
         vm.allocator.destroy(self);
     }

@@ -60,7 +60,7 @@ pub const Scanner = struct {
     }
 
     fn isAtEnd(self: *Self) bool {
-        const curr_len = @ptrToInt(self.current) - @ptrToInt(self.src.ptr);
+        const curr_len = @intFromPtr(self.current) - @intFromPtr(self.src.ptr);
         return curr_len >= self.src.len;
     }
 
@@ -133,7 +133,7 @@ pub const Scanner = struct {
     }
 
     fn currentLexeme(self: *Self) []const u8 {
-        const end = @ptrToInt(self.current) - @ptrToInt(self.start);
+        const end = @intFromPtr(self.current) - @intFromPtr(self.start);
         return self.start[0..end];
     }
 

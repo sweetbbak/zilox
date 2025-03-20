@@ -12,7 +12,7 @@ const stdin = std.io.getStdIn().reader();
 
 pub fn main() anyerror!u8 {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    var allocator = gpa.allocator();
+    const allocator = gpa.allocator();
     defer _ = gpa.deinit();
 
     const args = try std.process.argsAlloc(allocator);
@@ -39,7 +39,7 @@ fn repl(vm: *Vm) void {
 
     while (true) {
         stdout.writeAll("> ") catch std.debug.panic("Couldn't write to stdout you have serious problems", .{});
-        var line = reader.readUntilDelimiterOrEof(&line_buf, '\n') catch {
+        const line = reader.readUntilDelimiterOrEof(&line_buf, '\n') catch {
             std.debug.panic("Couldn't read from stdin in repl you have serious problems", .{});
         } orelse {
             stdout.writeAll("\n") catch std.debug.panic("Couldn't write to stdout you have serious problems", .{});
@@ -63,7 +63,7 @@ fn runFile(fileName: []const u8, vm: *Vm, allocator: Allocator) void {
 }
 
 fn readFile(path: []const u8, allocator: Allocator) []const u8 {
-    const file = std.fs.cwd().openFile(path, .{ .read = true }) catch |err| {
+    const file = std.fs.cwd().openFile(path, .{}) catch |err| {
         errout.print("Could not open file \"{s}\", error: {any}.\n", .{ path, err }) catch {};
         std.process.exit(74);
     };

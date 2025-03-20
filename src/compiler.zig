@@ -40,7 +40,7 @@ const Local = struct {
     depth: ?u32,
 };
 
-const ParseFn = fn (CompileCtx) void;
+const ParseFn = *const fn (CompileCtx) void;
 
 const ParseRule = struct {
     prefix: ?ParseFn = null,
@@ -59,7 +59,8 @@ pub fn compile(src: []const u8, chunk: *Chunk, vm: *Vm) !void {
     parser.hadError = false;
     parser.vm = vm;
     compiling_chunk = chunk;
-    current = &Compiler.init();
+    var comp: Compiler = Compiler.init();
+    current = &comp;
     advance();
     while (!match(.eof)) {
         declaration();
@@ -125,7 +126,8 @@ fn resolveLocal(compiler: *Compiler, name: Token) ?u8 {
             if (local.depth == null) {
                 err("Can't read local variable in its own initializer.");
             }
-            return @intCast(u8, i);
+            // return @intCast(u8, i);
+            return @intCast(i);
         }
     }
 
@@ -138,7 +140,7 @@ fn defineVariable(global: u8) void {
         return;
     }
 
-    emitBytes(@enumToInt(OpCode.op_define_global), global);
+    emitBytes(@intFromEnum(OpCode.op_define_global), global);
 }
 
 fn markInitialized() void {
@@ -271,8 +273,10 @@ fn patchJmp(addr: usize) void {
         err("Too much code to jump over.");
     }
 
-    currentChunk().code.items[addr] = @truncate(u8, jmp >> 8) & 0xff;
-    currentChunk().code.items[addr + 1] = @truncate(u8, jmp) & 0xff;
+    // currentChunk().code.items[addr] = @truncate(u8, jmp >> 8) & 0xff;
+    currentChunk().code.items[addr] = @as(u8, @truncate(jmp >> 8)) & 0xff;
+    // currentChunk().code.items[addr + 1] = @truncate(u8, jmp) & 0xff;
+    currentChunk().code.items[addr + 1] = @as(u8, @truncate(jmp)) & 0xff;
 }
 
 fn beginScope() void {
@@ -350,9 +354,9 @@ fn namedVariable(name: Token, ctx: CompileCtx) void {
 
     if (ctx.can_assign and match(.equal)) {
         expression();
-        emitBytes(@enumToInt(set_op), arg.?);
+        emitBytes(@intFromEnum(set_op), arg.?);
     } else {
-        emitBytes(@enumToInt(get_op), arg.?);
+        emitBytes(@intFromEnum(get_op), arg.?);
     }
 }
 
@@ -401,7 +405,8 @@ fn binary(ctx: CompileCtx) void {
     _ = ctx;
     const operator_type = parser.previous.type;
     const rule = getRule(operator_type);
-    parsePrecedence(@intToEnum(Precedence, @enumToInt(rule.precedence) + 1));
+    parsePrecedence(@enumFromInt(@intFromEnum(rule.precedence) + 1));
+    // parsePrecedence(@enumFromInt(Precedence, @enumToInt(rule.precedence) + 1));
 
     switch (operator_type) {
         .plus => emitOpCode(.op_add),
@@ -444,10 +449,11 @@ fn parsePrecedence(precedence: Precedence) void {
         return;
     };
 
-    const can_assign = @enumToInt(precedence) <= @enumToInt(Precedence.prec_assignment);
+    // const can_assign = @enumToInt(precedence) <= @enumToInt(Precedence.prec_assignment);
+    const can_assign = @intFromEnum(precedence) <= @intFromEnum(Precedence.prec_assignment);
     prefix_rule(.{ .can_assign = can_assign });
 
-    while (@enumToInt(precedence) <= @enumToInt(getRule(parser.current.type).precedence)) {
+    while (@intFromEnum(precedence) <= @intFromEnum(getRule(parser.current.type).precedence)) {
         advance();
         const infix_rule = getRule(parser.previous.type).infix orelse unreachable;
         infix_rule(.{ .can_assign = can_assign });
@@ -492,8 +498,10 @@ fn emitLoop(loop_start: usize) void {
     const offset = currentChunk().code.items.len - loop_start + 2;
     if (offset > std.math.maxInt(u16)) err("Loop body too large.");
 
-    emitByte(@truncate(u8, (offset >> 8) & 0xff));
-    emitByte(@truncate(u8, offset & 0xff));
+    // emitByte(@truncate(u8, (offset >> 8) & 0xff));
+    emitByte(@truncate((offset >> 8) & 0xff));
+    // emitByte(@truncate(u8, offset & 0xff));
+    emitByte(@truncate(offset & 0xff));
 }
 
 fn emitJmp(jmp: OpCode) usize {
@@ -513,7 +521,7 @@ fn emitOpCodes(code1: OpCode, code2: OpCode) void {
 }
 
 fn emitConstant(value: Value) void {
-    emitBytes(@enumToInt(OpCode.op_const), makeConstant(value));
+    emitBytes(@intFromEnum(OpCode.op_const), makeConstant(value));
 }
 
 fn makeConstant(value: Value) u8 {
@@ -524,7 +532,7 @@ fn makeConstant(value: Value) u8 {
         return 0;
     }
 
-    return @intCast(u8, constant_idx);
+    return @intCast(constant_idx);
 }
 
 fn emitByte(byte: u8) void {

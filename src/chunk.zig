@@ -48,7 +48,7 @@ pub const Chunk = struct {
     }
 
     pub fn writeOpCode(self: *Self, op_code: OpCode, line: usize) void {
-        self.writeByte(@enumToInt(op_code), line);
+        self.writeByte(@intFromEnum(op_code), line);
     }
 
     pub fn addConstant(self: *Self, val: Value) usize {

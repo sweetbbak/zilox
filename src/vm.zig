@@ -35,8 +35,8 @@ pub const Vm = struct {
     globals: GlobalsHashMap,
     objects: ?*Obj = null,
 
-    pub fn init(allocator: std.mem.Allocator) Vm {
-        return Vm{
+    pub fn init(allocator: std.mem.Allocator) Self {
+        return .{
             .ip = 0,
             .stack_top = 0,
             .allocator = allocator,
@@ -66,7 +66,8 @@ pub const Vm = struct {
 
     fn run(self: *Self) InterpretError!void {
         while (true) {
-            const instruction = @intToEnum(OpCode, self.readByte());
+            // const instruction = @intToEnum(OpCode, self.readByte());
+            const instruction: OpCode = @enumFromInt(self.readByte());
 
             if (comptime trace_stack) {
                 self.trace_stack_execution();

@@ -14,7 +14,7 @@ pub fn dissasembleChunk(chunk: *const Chunk, name: []const u8) void {
 
     var idx: usize = 0;
     while (idx < chunk.code.items.len) {
-        const item = @intToEnum(OpCode, chunk.code.items[idx]);
+        const item: OpCode = @enumFromInt(chunk.code.items[idx]);
         idx = dissasembleInstruction(chunk, item, idx);
     }
 }
