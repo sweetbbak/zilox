@@ -66,7 +66,6 @@ pub const Vm = struct {
 
     fn run(self: *Self) InterpretError!void {
         while (true) {
-            // const instruction = @intToEnum(OpCode, self.readByte());
             const instruction: OpCode = @enumFromInt(self.readByte());
 
             if (comptime trace_stack) {

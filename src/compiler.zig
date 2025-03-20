@@ -406,7 +406,6 @@ fn binary(ctx: CompileCtx) void {
     const operator_type = parser.previous.type;
     const rule = getRule(operator_type);
     parsePrecedence(@enumFromInt(@intFromEnum(rule.precedence) + 1));
-    // parsePrecedence(@enumFromInt(Precedence, @enumToInt(rule.precedence) + 1));
 
     switch (operator_type) {
         .plus => emitOpCode(.op_add),
@@ -449,7 +448,6 @@ fn parsePrecedence(precedence: Precedence) void {
         return;
     };
 
-    // const can_assign = @enumToInt(precedence) <= @enumToInt(Precedence.prec_assignment);
     const can_assign = @intFromEnum(precedence) <= @intFromEnum(Precedence.prec_assignment);
     prefix_rule(.{ .can_assign = can_assign });
 
@@ -498,9 +496,7 @@ fn emitLoop(loop_start: usize) void {
     const offset = currentChunk().code.items.len - loop_start + 2;
     if (offset > std.math.maxInt(u16)) err("Loop body too large.");
 
-    // emitByte(@truncate(u8, (offset >> 8) & 0xff));
     emitByte(@truncate((offset >> 8) & 0xff));
-    // emitByte(@truncate(u8, offset & 0xff));
     emitByte(@truncate(offset & 0xff));
 }
 
